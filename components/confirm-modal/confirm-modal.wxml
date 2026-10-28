@@ -1,0 +1,17 @@
+<view wx:if="{{show}}" class="mask" catchtap="onCancel">
+  <view class="modal" catchtap="">
+    <view class="title">识别结果</view>
+    <view class="row">
+      <text class="label">食物</text>
+      <text class="value">{{foodName}}</text>
+    </view>
+    <view class="row">
+      <text class="label">卡路里</text>
+      <text class="calorie">{{calorie}} <text class="unit">kcal</text></text>
+    </view>
+    <view class="actions">
+      <view class="btn btn-cancel" bindtap="onCancel">取消</view>
+      <view class="btn btn-record" bindtap="onRecord">记录</view>
+    </view>
+  </view>
+</view>

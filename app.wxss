@@ -1,0 +1,28 @@
+/* 全局样式 — 纯色背景 */
+page {
+  background-color: #F5F7FA;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  color: #333333;
+  font-size: 28rpx;
+}
+
+/* 通用容器 */
+.container {
+  padding: 40rpx 32rpx;
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+
+/* 主按钮 */
+.btn-primary {
+  background-color: #4A90D9;
+  color: #FFFFFF;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  padding: 24rpx 0;
+  text-align: center;
+}
+
+.btn-primary:active {
+  opacity: 0.85;
+}

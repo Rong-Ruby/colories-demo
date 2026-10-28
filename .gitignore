@@ -1,0 +1,18 @@
+﻿# Windows 系统文件
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+
+# Node
+node_modules/
+
+# cloudflared / 临时文件
+cloudflared.exe
+cfd*.log
+lt-*.log
+calorie-scanner.html  # 等下我们要放根目录，所以这条不生效

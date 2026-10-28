@@ -1,0 +1,85 @@
+/* components/confirm-modal/confirm-modal.wxss */
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal {
+  width: 560rpx;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 48rpx 40rpx 32rpx;
+  box-sizing: border-box;
+}
+
+.title {
+  font-size: 34rpx;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 36rpx;
+  color: #333;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #888;
+}
+
+.value {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.calorie {
+  font-size: 40rpx;
+  color: #4A90D9;
+  font-weight: 700;
+}
+
+.unit {
+  font-size: 22rpx;
+  color: #4A90D9;
+  font-weight: 400;
+  margin-left: 4rpx;
+}
+
+.actions {
+  display: flex;
+  margin-top: 40rpx;
+  gap: 24rpx;
+}
+
+.btn {
+  flex: 1;
+  text-align: center;
+  padding: 22rpx 0;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+}
+
+.btn-cancel {
+  background: #F5F5F5;
+  color: #666;
+}
+
+.btn-record {
+  background: #4A90D9;
+  color: #FFF;
+}

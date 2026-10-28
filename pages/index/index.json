@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "confirm-modal": "/components/confirm-modal/confirm-modal"
+  },
+  "navigationBarTitleText": "识别卡路里"
+}

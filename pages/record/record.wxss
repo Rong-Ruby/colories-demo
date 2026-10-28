@@ -1,0 +1,170 @@
+/* pages/record/record.wxss */
+.container {
+  padding-bottom: 80rpx;
+}
+
+/* 顶部摄入卡片 */
+.goal-card {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 40rpx 32rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.goal-top {
+  display: flex;
+  align-items: center;
+}
+
+.goal-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.goal-divider {
+  width: 2rpx;
+  height: 60rpx;
+  background: #EEE;
+}
+
+.goal-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 12rpx;
+}
+
+.goal-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4A90D9;
+}
+
+.goal-value.big {
+  font-size: 52rpx;
+}
+
+.goal-edit {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+}
+
+.goal-edit-icon {
+  font-size: 26rpx;
+  color: #4A90D9;
+}
+
+.goal-bottom {
+  margin-top: 20rpx;
+  text-align: center;
+}
+
+.goal-sub {
+  font-size: 26rpx;
+  color: #888;
+}
+
+/* 区块通用 */
+.section {
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+}
+
+/* 今日记录列表 */
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F8F8F8;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.food-name {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.food-time {
+  font-size: 22rpx;
+  color: #BBB;
+  margin-top: 6rpx;
+}
+
+.food-calorie {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #4A90D9;
+}
+
+.empty {
+  text-align: center;
+  color: #BBB;
+  font-size: 26rpx;
+  padding: 32rpx 0;
+}
+
+/* 本周总结 */
+.week-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.week-item {
+  width: calc(50% - 8rpx);
+  background: #F5F7FA;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.week-day {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.week-total {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #4A90D9;
+}
+
+.week-unit {
+  font-size: 20rpx;
+  color: #4A90D9;
+  margin-left: 4rpx;
+}
+
+.week-avg {
+  margin-top: 24rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #888;
+}

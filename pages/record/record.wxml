@@ -1,0 +1,52 @@
+<view class="container">
+  <!-- 顶部：今日摄入 + 目标 -->
+  <view class="goal-card">
+    <view class="goal-top">
+      <view class="goal-item">
+        <text class="goal-label">今日摄入</text>
+        <text class="goal-value big">{{todayTotal}}</text>
+      </view>
+      <view class="goal-divider"></view>
+      <view class="goal-item">
+        <text class="goal-label">每日目标</text>
+        <view class="goal-edit" bindtap="onEditGoal">
+          <text class="goal-value">{{dailyGoal}}</text>
+          <text class="goal-edit-icon">✎</text>
+        </view>
+      </view>
+    </view>
+    <view class="goal-bottom">
+      <text class="goal-sub">{{remaining}}</text>
+    </view>
+  </view>
+
+  <!-- 今日记录列表 -->
+  <view class="section">
+    <view class="section-title">今日记录</view>
+    <view class="list" wx:if="{{todayList.length > 0}}">
+      <view class="list-item" wx:for="{{todayList}}" wx:key="id">
+        <view class="list-left">
+          <text class="food-name">{{item.name}}</text>
+          <text class="food-time">{{item.time}}</text>
+        </view>
+        <text class="food-calorie">{{item.calorie}} kcal</text>
+      </view>
+    </view>
+    <view class="empty" wx:else>今日暂无记录，快去识别吧～</view>
+  </view>
+
+  <!-- 本周总结（只显示数字） -->
+  <view class="section">
+    <view class="section-title">本周总结</view>
+    <view class="week-list">
+      <view class="week-item" wx:for="{{weekSummary}}" wx:key="date">
+        <text class="week-day">{{item.dayName}}</text>
+        <text class="week-total">{{item.total}}</text>
+        <text class="week-unit">kcal</text>
+      </view>
+    </view>
+    <view class="week-avg" wx:if="{{weekSummary.length > 0}}">
+      日均：{{weekAvg}} kcal
+    </view>
+  </view>
+</view>

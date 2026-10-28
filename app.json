@@ -1,0 +1,30 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/record/record"
+  ],
+  "window": {
+    "navigationBarTitleText": "卡路里识别",
+    "navigationBarBackgroundColor": "#4A90D9",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F5F7FA",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#4A90D9",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "识别"
+      },
+      {
+        "pagePath": "pages/record/record",
+        "text": "记录"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}
