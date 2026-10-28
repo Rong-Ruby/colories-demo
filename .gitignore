@@ -16,3 +16,10 @@ cloudflared.exe
 cfd*.log
 lt-*.log
 calorie-scanner.html  # 等下我们要放根目录，所以这条不生效
+*.log
+_s.js
+_server.js
+_server.py
+node_modules/
+.DS_Store
+Thumbs.db

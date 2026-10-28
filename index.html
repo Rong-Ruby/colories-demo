@@ -5,6 +5,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>卡路里识别 · 体验 Demo</title>
+<!-- TensorFlow.js + COCO-SSD 物体检测（纯前端 AI 识别） -->
+<script src="https://unpkg.com/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
+<script src="https://unpkg.com/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
 <style>
   :root {
     --bg: #F5F7FA;
@@ -356,6 +359,129 @@
   .m-btn.cancel { background: #F5F5F5; color: #666; }
   .m-btn.record { background: var(--accent); color: #fff; }
 
+  /* ========== 摄像头全屏层 ========== */
+  .camera-wrap {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000;
+    z-index: 25;
+    display: none;
+    flex-direction: column;
+  }
+  .camera-wrap.show { display: flex; }
+  .camera-video {
+    flex: 1;
+    width: 100%;
+    object-fit: cover;
+    background: #111;
+  }
+  .camera-top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 50px 20px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+    z-index: 2;
+  }
+  .camera-close {
+    color: #fff;
+    font-size: 15px;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .camera-tip {
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+  }
+  .camera-bottom {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 30px 20px 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+    z-index: 2;
+  }
+  .shutter {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    border: 3px solid rgba(255,255,255,0.9);
+    cursor: pointer;
+    transition: transform .15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .shutter:active { transform: scale(.9); }
+  .shutter::after {
+    content: '';
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .shutter.loading { opacity: .5; pointer-events: none; }
+
+  /* 拍照后预览层 */
+  .preview-wrap {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000;
+    z-index: 26;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+  }
+  .preview-wrap.show { display: flex; }
+  .preview-img {
+    width: 100%;
+    flex: 1;
+    object-fit: contain;
+  }
+  .preview-actions {
+    width: 100%;
+    display: flex;
+    gap: 12px;
+    padding: 20px 20px 36px;
+    background: #000;
+  }
+  .preview-btn {
+    flex: 1;
+    height: 44px;
+    border-radius: 10px;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+  }
+  .preview-btn.retake { background: #333; color: #fff; }
+  .preview-btn.use { background: var(--accent); color: #fff; }
+
+  .camera-error {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    text-align: center;
+    font-size: 14px;
+    padding: 20px;
+    background: rgba(0,0,0,0.75);
+    border-radius: 12px;
+    max-width: 80%;
+  }
+  .camera-error button {
+    margin-top: 12px;
+    padding: 8px 20px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
   /* Toast */
   .toast {
     position: absolute;
@@ -422,7 +548,7 @@
           <div class="scan-icon"><span>📷</span></div>
           <div class="scan-hint" id="scanHint">将食物对准识别框</div>
         </div>
-        <button class="btn-scan" id="btnScan" onclick="startScan()">开始识别</button>
+        <label for="fileInput" class="btn-scan" id="btnScan" style="display:flex;align-items:center;justify-content:center;">开始识别</label>
         <div class="today-card">
           <span class="label">今日已记录</span>
           <span class="value" id="todayVal">0<span class="unit">kcal</span></span>
@@ -476,17 +602,48 @@
     <!-- Home Indicator -->
     <div class="home-indicator"></div>
 
+    <!-- ========== 摄像头全屏层 ========== -->
+    <div class="camera-wrap" id="cameraWrap">
+      <video class="camera-video" id="cameraVideo" autoplay playsinline muted></video>
+      <div class="camera-top">
+        <button class="camera-close" onclick="closeCamera()">✕</button>
+        <span class="camera-tip">对准食物 → 点下方快门拍照</span>
+        <span style="width:34px"></span>
+      </div>
+      <div class="camera-bottom">
+        <div class="shutter" id="shutter" onclick="takePhoto()"></div>
+      </div>
+      <div class="camera-error" id="cameraError" style="display:none"></div>
+    </div>
+
+    <!-- 拍照后预览层 -->
+    <div class="preview-wrap" id="previewWrap">
+      <img class="preview-img" id="previewImg" alt="拍摄预览">
+      <div class="preview-actions">
+        <button class="preview-btn retake" onclick="retakePhoto()">重拍</button>
+        <button class="preview-btn use" onclick="analyzePhoto()">识别卡路里</button>
+      </div>
+    </div>
+
+    <!-- 隐藏的 canvas 用于拍照 -->
+    <canvas id="photoCanvas" style="display:none"></canvas>
+
+    <!-- 拍照 input（用 position:absolute 隐藏比 display:none 更稳，某些浏览器对后者 label 联动不触发）-->
+    <input type="file" id="fileInput" accept="image/*" capture="environment"
+           onchange="handleFile(this)"
+           style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;">
+
     <!-- 识别结果弹窗 -->
     <div class="modal-mask" id="modal">
       <div class="modal">
         <div class="m-title">识别结果</div>
         <div class="m-row">
           <span class="m-label">食物</span>
-          <span class="m-value" id="mFood">🍎 苹果</span>
+          <span class="m-value" id="mFood">—</span>
         </div>
         <div class="m-row">
           <span class="m-label">卡路里</span>
-          <span class="m-calorie"><span id="mCal">52</span><span class="unit">kcal</span></span>
+          <span class="m-calorie"><span id="mCal">—</span><span class="unit">kcal</span></span>
         </div>
         <div class="m-actions">
           <button class="m-btn cancel" onclick="closeModal()">取消</button>
@@ -502,25 +659,37 @@
 </div>
 
 <script>
-  // ===== 食物库 =====
+  // ===== 食物库（USDA FoodData Central 数据）=====
+  // cocoLabel → TensorFlow COCO-SSD 可识别的英文类别
+  // color → 该食物的代表主色调（十六进制），用于 COCO 未命中时的颜色匹配
   const FOODS = [
-    { name: '苹果', cal: 52, emoji: '🍎' },
-    { name: '香蕉', cal: 89, emoji: '🍌' },
-    { name: '橙子', cal: 47, emoji: '🍊' },
-    { name: '米饭(一碗)', cal: 232, emoji: '🍚' },
-    { name: '鸡蛋', cal: 78, emoji: '🥚' },
-    { name: '牛奶(250ml)', cal: 150, emoji: '🥛' },
-    { name: '鸡胸肉(100g)', cal: 165, emoji: '🍗' },
-    { name: '西兰花(100g)', cal: 34, emoji: '🥦' },
-    { name: '三文鱼(100g)', cal: 208, emoji: '🐟' },
-    { name: '面条(一碗)', cal: 280, emoji: '🍜' },
-    { name: '饺子(5个)', cal: 250, emoji: '🥟' },
-    { name: '可乐(330ml)', cal: 139, emoji: '🥤' },
-    { name: '蛋糕(1块)', cal: 350, emoji: '🍰' },
-    { name: '酸奶(200g)', cal: 144, emoji: '🥛' },
-    { name: '吐司面包', cal: 80, emoji: '🍞' },
-    { name: '番茄', cal: 18, emoji: '🍅' },
+    { name: '苹果',     cal: 95,  cocoLabel: 'apple',      color: '#E8411E' },
+    { name: '香蕉',     cal: 105, cocoLabel: 'banana',     color: '#FFD93D' },
+    { name: '橙子',     cal: 45,  cocoLabel: 'orange',     color: '#F07F1E' },
+    { name: '西兰花',   cal: 34,  cocoLabel: 'broccoli',   color: '#3B7A24' },
+    { name: '胡萝卜',   cal: 41,  cocoLabel: 'carrot',     color: '#FF6B35' },
+    { name: '热狗',     cal: 290, cocoLabel: 'hot dog',    color: '#D2691E' },
+    { name: '披萨',     cal: 285, cocoLabel: 'pizza',      color: '#D2691E' },
+    { name: '蛋糕',     cal: 250, cocoLabel: 'cake',       color: '#F5DEB3' },
+    { name: '甜甜圈',   cal: 350, cocoLabel: 'donut',      color: '#DEB887' },
+    { name: '三明治',   cal: 320, cocoLabel: 'sandwich',   color: '#D2B48C' },
+    { name: '草莓',     cal: 32,                        color: '#E53935' },
+    { name: '葡萄',     cal: 86,                        color: '#6A0DAD' },
+    { name: '西瓜',     cal: 46,                        color: '#FF4D4F' },
+    { name: '米饭',     cal: 205,                       color: '#F5F5DC' },
+    { name: '鸡蛋',     cal: 78,                        color: '#FFF8DC' },
+    { name: '牛奶',     cal: 150,                       color: '#FAFAFA' },
+    { name: '鸡胸肉',   cal: 165,                       color: '#F5E6D3' },
+    { name: '三文鱼',   cal: 208,                       color: '#FF8C69' },
+    { name: '土豆',     cal: 145,                       color: '#D2B48C' },
+    { name: '番茄',     cal: 22,                        color: '#E53935' },
+    { name: '黄瓜',     cal: 16,                        color: '#78C850' },
+    { name: '全麦面包', cal: 81,                        color: '#A0522D' },
+    { name: '燕麦粥',   cal: 166,                       color: '#F0E68C' },
   ];
+
+  // COCO-SSD 食物类白名单
+  const COCO_FOODS = new Set(['apple','banana','orange','broccoli','carrot','hot dog','pizza','donut','cake','sandwich']);
 
   // ===== 状态 =====
   let state = {
@@ -553,27 +722,164 @@
     if (tab === 'record') renderRecordPage();
   }
 
-  // ===== 识别流程 =====
-  function startScan() {
-    const btn = document.getElementById('btnScan');
-    const area = document.getElementById('scanArea');
-    const hint = document.getElementById('scanHint');
-    btn.classList.add('loading');
-    area.classList.add('scanning');
-    hint.textContent = '识别中…';
-    btn.textContent = '识别中…';
+  // ===== 拍照处理（唯一入口：label → input change）=====
+  function handleFile(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      document.getElementById('previewImg').src = ev.target.result;
+      // 关掉可能存在的 camera 层
+      var cw = document.getElementById('cameraWrap');
+      if (cw) cw.classList.remove('show');
+      // 显示预览
+      document.getElementById('previewWrap').classList.add('show');
+    };
+    reader.onerror = function() { showToast('图片读取失败'); };
+    reader.readAsDataURL(file);
+    // 清空 input 让下次能重选同一张
+    input.value = '';
+  }
 
-    setTimeout(() => {
-      const f = FOODS[Math.floor(Math.random() * FOODS.length)];
-      state.pendingScan = f;
-      document.getElementById('mFood').textContent = f.emoji + ' ' + f.name;
-      document.getElementById('mCal').textContent = f.cal;
-      btn.classList.remove('loading');
-      area.classList.remove('scanning');
-      hint.textContent = '将食物对准识别框';
-      btn.textContent = '开始识别';
+  function retakePhoto() {
+    document.getElementById('previewWrap').classList.remove('show');
+    document.getElementById('fileInput').click();
+  }
+
+  function closeCamera() {
+    document.getElementById('cameraWrap').classList.remove('show');
+  }
+
+  // ===== TensorFlow.js + COCO-SSD 初始化 =====
+  let tfModel = null;
+  let tfLoading = false;
+  async function ensureModel() {
+    if (tfModel) return true;
+    if (tfLoading) return false;
+    if (!window.tf || !window.cocoSsd) {
+      showToast('AI 引擎未加载，请检查网络');
+      return false;
+    }
+    tfLoading = true;
+    showToast('加载识别模型中（首次约 10MB）...');
+    try {
+      tfModel = await cocoSsd.load({ base: 'mobilenet_v2' });
+      showToast('模型就绪 ✓');
+      return true;
+    } catch (e) {
+      console.error('模型加载失败', e);
+      showToast('模型加载失败');
+      return false;
+    } finally {
+      tfLoading = false;
+    }
+  }
+
+  // ===== 颜色特征辅助识别（COCO 未命中时的降级方案）=====
+  // 用 canvas 把图缩小，提取主色调，和 FOODS 里的 color 字段比对
+  function parseHex(h) { return [parseInt(h.substr(1,2),16), parseInt(h.substr(3,2),16), parseInt(h.substr(5,2),16)]; }
+  function colorDist(a, b) {
+    var dr = a[0]-b[0], dg = a[1]-b[1], db = a[2]-b[2];
+    return Math.sqrt(dr*dr + dg*dg + db*db);
+  }
+  /** 用 canvas 提取图片主色调（跳过透明/纯白/纯黑像素） */
+  function dominantColor(img) {
+    var W = 40, H = 40;
+    var c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    var ctx = c.getContext('2d');
+    try {
+      ctx.drawImage(img, 0, 0, W, H);
+    } catch (e) { return null; }
+    var data;
+    try { data = ctx.getImageData(0, 0, W, H).data; } catch (e) { return null; }
+
+    // 量化到 32 级减少噪声
+    var buckets = {};
+    for (var i = 0; i < data.length; i += 4) {
+      var r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+      if (a < 128) continue;
+      // 跳过接近白/黑/灰的背景
+      if (r > 230 && g > 230 && b > 230) continue;
+      if (r < 20 && g < 20 && b < 20) continue;
+      if (Math.abs(r-g) < 10 && Math.abs(g-b) < 10 && Math.abs(r-b) < 10) continue;
+      var key = (r>>3) + ',' + (g>>3) + ',' + (b>>3);
+      buckets[key] = (buckets[key] || 0) + 1;
+    }
+    // 取最高频 bucket 的代表色
+    var max = 0, best = null;
+    for (var k in buckets) {
+      if (buckets[k] > max) { max = buckets[k]; best = k; }
+    }
+    if (!best) return null;
+    var parts = best.split(',');
+    return [(parseInt(parts[0])<<3)+4, (parseInt(parts[1])<<3)+4, (parseInt(parts[2])<<3)+4];
+  }
+  /** 用颜色匹配食物库，返回相似度最高的 */
+  function matchByColor(img) {
+    var dc = dominantColor(img);
+    if (!dc) return null;
+    var bestFood = null, bestDist = Infinity;
+    for (var i = 0; i < FOODS.length; i++) {
+      var f = FOODS[i];
+      if (!f.color) continue;
+      var d = colorDist(dc, parseHex(f.color));
+      if (d < bestDist) { bestDist = d; bestFood = f; }
+    }
+    // 颜色距离 <= 90 认为可信（0=完全相同，255*√3≈441=完全不同）
+    return bestDist <= 90 ? bestFood : null;
+  }
+
+  /** 真实识别：优先 COCO-SSD，没命中降级颜色匹配 */
+  async function analyzePhoto() {
+    var img = document.getElementById('previewImg');
+    if (!img.src || !img.naturalWidth) {
+      showToast('请先拍一张照片');
+      return;
+    }
+
+    // 1. 先尝试 COCO-SSD（真实物体检测）
+    if (await ensureModel()) {
+      showToast('AI 分析中...');
+      var predictions;
+      try { predictions = await tfModel.detect(img, 10); }
+      catch (e) { console.warn('COCO detect 失败', e); predictions = []; }
+
+      var best = null;
+      for (var i = 0; i < predictions.length; i++) {
+        var p = predictions[i];
+        if (COCO_FOODS.has(p.class) && p.score >= 0.4) {
+          if (!best || p.score > best.score) best = p;
+        }
+      }
+      if (best) {
+        var matched = FOODS.find(function(f) { return f.cocoLabel === best.class; });
+        if (matched) {
+          state.pendingScan = matched;
+          document.getElementById('mFood').textContent = matched.name + ' (' + Math.round(best.score*100) + '% 置信)';
+          document.getElementById('mCal').textContent = matched.cal;
+          document.getElementById('previewWrap').classList.remove('show');
+          openModal();
+          showToast('识别完成 ✓');
+          return;
+        }
+      }
+    }
+
+    // 2. COCO 没命中 → 降级颜色特征匹配
+    showToast('颜色匹配中...');
+    var colorMatch = matchByColor(img);
+    if (colorMatch) {
+      state.pendingScan = colorMatch;
+      document.getElementById('mFood').textContent = colorMatch.name;
+      document.getElementById('mCal').textContent = colorMatch.cal;
+      document.getElementById('previewWrap').classList.remove('show');
       openModal();
-    }, 1400);
+      showToast('识别完成 ✓');
+      return;
+    }
+
+    showToast('没识别出食物，请对准食物重拍');
   }
 
   function openModal() { document.getElementById('modal').classList.add('show'); }
@@ -581,10 +887,10 @@
 
   function confirmRecord() {
     if (!state.pendingScan) return;
-    const now = new Date();
-    const time = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    var now = new Date();
+    var time = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
     state.records.unshift({
-      name: state.pendingScan.emoji + ' ' + state.pendingScan.name,
+      name: state.pendingScan.name,
       cal: state.pendingScan.cal,
       time
     });
