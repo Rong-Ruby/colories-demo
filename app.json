@@ -5,26 +5,31 @@
   ],
   "window": {
     "navigationBarTitleText": "卡路里识别",
-    "navigationBarBackgroundColor": "#4A90D9",
+    "navigationBarBackgroundColor": "#2563EB",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#F5F7FA",
+    "backgroundColor": "#F6F8FB",
     "backgroundTextStyle": "light"
   },
   "tabBar": {
-    "color": "#999999",
-    "selectedColor": "#4A90D9",
+    "color": "#6B7280",
+    "selectedColor": "#2563EB",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "识别"
+        "text": "识别",
+        "iconPath": "images/tab-recognize.png",
+        "selectedIconPath": "images/tab-recognize-active.png"
       },
       {
         "pagePath": "pages/record/record",
-        "text": "记录"
+        "text": "记录",
+        "iconPath": "images/tab-record.png",
+        "selectedIconPath": "images/tab-record-active.png"
       }
     ]
   },
+  "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json"
 }

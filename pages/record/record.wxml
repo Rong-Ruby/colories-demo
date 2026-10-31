@@ -1,52 +1,65 @@
 <view class="container">
   <!-- 顶部：今日摄入 + 目标 -->
-  <view class="goal-card">
+  <view class="card goal-card">
     <view class="goal-top">
       <view class="goal-item">
-        <text class="goal-label">今日摄入</text>
-        <text class="goal-value big">{{todayTotal}}</text>
+        <text class="metric-label">今日摄入</text>
+        <view class="metric-line">
+          <text class="metric-value">{{todayTotal}}</text>
+          <text class="metric-unit">kcal</text>
+        </view>
       </view>
-      <view class="goal-divider"></view>
-      <view class="goal-item">
-        <text class="goal-label">每日目标</text>
-        <view class="goal-edit" bindtap="onEditGoal">
+      <view class="goal-item goal-right">
+        <text class="metric-label">每日目标</text>
+        <view class="goal-target">
           <text class="goal-value">{{dailyGoal}}</text>
-          <text class="goal-edit-icon">✎</text>
+          <view class="pill-btn" hover-class="pill-btn-hover" bindtap="onEditGoal">修改</view>
         </view>
       </view>
     </view>
-    <view class="goal-bottom">
-      <text class="goal-sub">{{remaining}}</text>
-    </view>
+    <view class="remaining-chip {{overGoal ? 'over' : ''}}">{{remaining}}</view>
   </view>
 
   <!-- 今日记录列表 -->
-  <view class="section">
-    <view class="section-title">今日记录</view>
+  <view class="card section">
+    <view class="section-head">
+      <text class="section-title">今日记录</text>
+      <text class="section-tip" wx:if="{{todayList.length > 0}}">长按可删除</text>
+    </view>
     <view class="list" wx:if="{{todayList.length > 0}}">
-      <view class="list-item" wx:for="{{todayList}}" wx:key="id">
+      <view
+        class="list-item"
+        wx:for="{{todayList}}"
+        wx:key="id"
+        hover-class="list-item-hover"
+        data-id="{{item.id}}"
+        data-name="{{item.name}}"
+        bindlongpress="onDeleteRecord"
+      >
         <view class="list-left">
           <text class="food-name">{{item.name}}</text>
           <text class="food-time">{{item.time}}</text>
         </view>
-        <text class="food-calorie">{{item.calorie}} kcal</text>
+        <text class="food-calorie">{{item.calorie}}<text class="food-unit"> kcal</text></text>
       </view>
     </view>
-    <view class="empty" wx:else>今日暂无记录，快去识别吧～</view>
+    <view class="empty" wx:else>今天还没有记录，去「识别」页拍一张吧</view>
   </view>
 
-  <!-- 本周总结（只显示数字） -->
-  <view class="section">
-    <view class="section-title">本周总结</view>
+  <!-- 近 7 天汇总 -->
+  <view class="card section">
+    <view class="section-head">
+      <text class="section-title">近 7 天</text>
+    </view>
     <view class="week-list">
       <view class="week-item" wx:for="{{weekSummary}}" wx:key="date">
         <text class="week-day">{{item.dayName}}</text>
-        <text class="week-total">{{item.total}}</text>
-        <text class="week-unit">kcal</text>
+        <text class="week-total">{{item.total}}<text class="week-unit"> kcal</text></text>
       </view>
     </view>
-    <view class="week-avg" wx:if="{{weekSummary.length > 0}}">
-      日均：{{weekAvg}} kcal
-    </view>
+    <view class="week-avg" wx:if="{{weekDays > 0}}">日均（有记录 {{weekDays}} 天）：{{weekAvg}} kcal</view>
   </view>
+
+  <!-- 云端不可用时的数据来源提示 -->
+  <view class="data-source" wx:if="{{!cloudMode}}">未连接云数据库，数据暂存在本机</view>
 </view>

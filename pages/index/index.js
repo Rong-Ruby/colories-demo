@@ -12,40 +12,41 @@ Page({
   },
 
   onShow() {
-    this.setData({
-      todayTotal: storage.getTodayTotal()
-    });
+    this.loadTodayTotal();
   },
 
   /**
-   * 开始识别
+   * 读取今日总摄入（云数据库优先）
+   */
+  async loadTodayTotal() {
+    const todayTotal = await storage.getTodayTotal();
+    this.setData({ todayTotal });
+  },
+
+  /**
+   * 开始识别：拍摄或从相册选一张食物照片
    */
   async onStartScan() {
     if (this.data.scanning) return;
 
-    // 先尝试申请摄像头（Mock 模式下其实用不上，但保留真实流程）
+    let tempFilePath = '';
     try {
-      await new Promise((resolve, reject) => {
-        wx.authorize({
-          scope: 'scope.camera',
-          success: resolve,
-          fail: reject
-        });
+      const { tempFiles } = await wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sizeType: ['compressed'],
+        sourceType: ['camera', 'album']
       });
+      tempFilePath = tempFiles[0].tempFilePath;
     } catch (e) {
-      // 用户未授权或拒绝 —— Mock 模式下仍可继续
-      wx.showToast({
-        title: '已使用模拟识别',
-        icon: 'none',
-        duration: 1500
-      });
+      // 用户取消拍摄或选择，直接返回
+      return;
     }
 
     this.setData({ scanning: true });
 
     try {
-      // Mock 识别
-      const result = await mockScan();
+      const result = await mockScan(tempFilePath);
       this.setData({
         scanning: false,
         modalShow: true,
@@ -59,16 +60,25 @@ Page({
   },
 
   /**
-   * 用户确认记录
+   * 用户确认记录：写入云数据库
    */
-  onConfirmRecord(e) {
+  async onConfirmRecord(e) {
     const { name, calorie } = e.detail;
-    storage.addRecord(name, calorie);
-    this.setData({
-      modalShow: false,
-      todayTotal: storage.getTodayTotal()
-    });
-    wx.showToast({ title: '已记录 ✓', icon: 'success' });
+    wx.showLoading({ title: '保存中', mask: true });
+
+    try {
+      await storage.addRecord(name, calorie);
+      const todayTotal = await storage.getTodayTotal();
+      this.setData({
+        modalShow: false,
+        todayTotal
+      });
+      wx.hideLoading();
+      wx.showToast({ title: '已记录', icon: 'success' });
+    } catch (err) {
+      wx.hideLoading();
+      wx.showToast({ title: '保存失败，请重试', icon: 'none' });
+    }
   },
 
   /**

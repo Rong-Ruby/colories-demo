@@ -1,28 +1,75 @@
-/* 全局样式 — 纯色背景 */
+/* 全局样式 — 设计基准：品牌蓝 #2563EB + 中性灰阶 */
 page {
-  background-color: #F5F7FA;
+  background-color: #F6F8FB;
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
-  color: #333333;
+  color: #111827;
   font-size: 28rpx;
+  line-height: 1.5;
 }
 
 /* 通用容器 */
 .container {
-  padding: 40rpx 32rpx;
+  padding: 48rpx 40rpx 56rpx;
   box-sizing: border-box;
   min-height: 100vh;
 }
 
-/* 主按钮 */
-.btn-primary {
-  background-color: #4A90D9;
-  color: #FFFFFF;
-  border-radius: 16rpx;
-  font-size: 32rpx;
-  padding: 24rpx 0;
-  text-align: center;
+/* 页面标题层级 */
+.page-title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #111827;
 }
 
-.btn-primary:active {
-  opacity: 0.85;
+.page-sub {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #6B7280;
+}
+
+/* 卡片 */
+.card {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(17, 24, 39, 0.06);
+}
+
+/* 按钮层级：一级主按钮 */
+.btn-primary {
+  height: 104rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2563EB;
+  color: #FFFFFF;
+  font-size: 34rpx;
+  font-weight: 600;
+  border-radius: 20rpx;
+  box-shadow: 0 12rpx 24rpx rgba(37, 99, 235, 0.24);
+  box-sizing: border-box;
+}
+
+.btn-primary-hover {
+  background: #1D4ED8;
+}
+
+/* 二级按钮 */
+.btn-secondary {
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  color: #2563EB;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: 2rpx solid #2563EB;
+  border-radius: 20rpx;
+  box-sizing: border-box;
+}
+
+.btn-secondary-hover {
+  background: #EAF1FF;
 }

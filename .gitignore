@@ -1,4 +1,4 @@
-﻿# Windows 系统文件
+# Windows 系统文件
 Thumbs.db
 Desktop.ini
 .DS_Store
@@ -8,18 +8,12 @@ Desktop.ini
 .idea/
 *.swp
 
-# Node
+# 依赖
 node_modules/
 
-# cloudflared / 临时文件
+# 本地调试产物（不属于小程序本体）
+_dev/
 cloudflared.exe
-cfd*.log
-lt-*.log
-calorie-scanner.html  # 等下我们要放根目录，所以这条不生效
 *.log
-_s.js
-_server.js
-_server.py
-node_modules/
-.DS_Store
-Thumbs.db
+.screenshots/
+.trae-html-share-packages/

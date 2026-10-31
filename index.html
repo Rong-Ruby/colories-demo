@@ -698,6 +698,11 @@
     pendingScan: null
   };
 
+  // ===== 识别后端 API 接入点（保留接口，留空=用本地 TF.js 识别）=====
+  // 接真实后端时填：'https://your-api.com/food/recognize'
+  // 后端需接收 POST { image: base64 }，返回 { name: '苹果', cal: 95 }
+  const RECOGNIZE_API = '';
+
   // 初始化：给点 mock 历史数据让记录页不空
   function initMockData() {
     const today = new Date();
@@ -776,7 +781,6 @@
   }
 
   // ===== 颜色特征辅助识别（COCO 未命中时的降级方案）=====
-  // 用 canvas 把图缩小，提取主色调，和 FOODS 里的 color 字段比对
   function parseHex(h) { return [parseInt(h.substr(1,2),16), parseInt(h.substr(3,2),16), parseInt(h.substr(5,2),16)]; }
   function colorDist(a, b) {
     var dr = a[0]-b[0], dg = a[1]-b[1], db = a[2]-b[2];
@@ -788,29 +792,21 @@
     var c = document.createElement('canvas');
     c.width = W; c.height = H;
     var ctx = c.getContext('2d');
-    try {
-      ctx.drawImage(img, 0, 0, W, H);
-    } catch (e) { return null; }
+    try { ctx.drawImage(img, 0, 0, W, H); } catch (e) { return null; }
     var data;
     try { data = ctx.getImageData(0, 0, W, H).data; } catch (e) { return null; }
-
-    // 量化到 32 级减少噪声
     var buckets = {};
     for (var i = 0; i < data.length; i += 4) {
       var r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
       if (a < 128) continue;
-      // 跳过接近白/黑/灰的背景
       if (r > 230 && g > 230 && b > 230) continue;
       if (r < 20 && g < 20 && b < 20) continue;
       if (Math.abs(r-g) < 10 && Math.abs(g-b) < 10 && Math.abs(r-b) < 10) continue;
       var key = (r>>3) + ',' + (g>>3) + ',' + (b>>3);
       buckets[key] = (buckets[key] || 0) + 1;
     }
-    // 取最高频 bucket 的代表色
     var max = 0, best = null;
-    for (var k in buckets) {
-      if (buckets[k] > max) { max = buckets[k]; best = k; }
-    }
+    for (var k in buckets) { if (buckets[k] > max) { max = buckets[k]; best = k; } }
     if (!best) return null;
     var parts = best.split(',');
     return [(parseInt(parts[0])<<3)+4, (parseInt(parts[1])<<3)+4, (parseInt(parts[2])<<3)+4];
@@ -826,25 +822,15 @@
       var d = colorDist(dc, parseHex(f.color));
       if (d < bestDist) { bestDist = d; bestFood = f; }
     }
-    // 颜色距离 <= 90 认为可信（0=完全相同，255*√3≈441=完全不同）
     return bestDist <= 90 ? bestFood : null;
   }
 
-  /** 真实识别：优先 COCO-SSD，没命中降级颜色匹配 */
-  async function analyzePhoto() {
-    var img = document.getElementById('previewImg');
-    if (!img.src || !img.naturalWidth) {
-      showToast('请先拍一张照片');
-      return;
-    }
-
-    // 1. 先尝试 COCO-SSD（真实物体检测）
+  /** 本地识别：优先 COCO-SSD，没命中降级颜色匹配。返回 { name, cal } 或 null */
+  async function localRecognize(img) {
     if (await ensureModel()) {
-      showToast('AI 分析中...');
       var predictions;
       try { predictions = await tfModel.detect(img, 10); }
       catch (e) { console.warn('COCO detect 失败', e); predictions = []; }
-
       var best = null;
       for (var i = 0; i < predictions.length; i++) {
         var p = predictions[i];
@@ -854,32 +840,65 @@
       }
       if (best) {
         var matched = FOODS.find(function(f) { return f.cocoLabel === best.class; });
-        if (matched) {
-          state.pendingScan = matched;
-          document.getElementById('mFood').textContent = matched.name + ' (' + Math.round(best.score*100) + '% 置信)';
-          document.getElementById('mCal').textContent = matched.cal;
-          document.getElementById('previewWrap').classList.remove('show');
-          openModal();
-          showToast('识别完成 ✓');
-          return;
-        }
+        if (matched) return { name: matched.name, cal: matched.cal, score: best.score };
       }
     }
-
-    // 2. COCO 没命中 → 降级颜色特征匹配
-    showToast('颜色匹配中...');
+    // 降级颜色匹配
     var colorMatch = matchByColor(img);
-    if (colorMatch) {
-      state.pendingScan = colorMatch;
-      document.getElementById('mFood').textContent = colorMatch.name;
-      document.getElementById('mCal').textContent = colorMatch.cal;
+    if (colorMatch) return { name: colorMatch.name, cal: colorMatch.cal, score: null };
+    return null;
+  }
+
+  /** 调用后端识别 API（POST { image: base64 } → { name, cal }） */
+  async function apiRecognize(img) {
+    showToast('调用后端识别接口...');
+    // 把 <img> 转 base64
+    var c = document.createElement('canvas');
+    c.width = img.naturalWidth || 300;
+    c.height = img.naturalHeight || 300;
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    var base64 = c.toDataURL('image/jpeg', 0.7).split(',')[1];
+
+    try {
+      var res = await fetch(RECOGNIZE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var data = await res.json();
+      if (data && data.name) return { name: data.name, cal: data.cal || 0, score: null };
+      throw new Error('接口返回格式错误');
+    } catch (e) {
+      console.error('API 识别失败', e);
+      showToast('后端识别失败，回退本地识别');
+      return await localRecognize(img);  // API 失败 → 回退本地
+    }
+  }
+
+  /** 统一识别入口：有 API 走 API，否则本地 TF.js */
+  async function recognizeFood(img) {
+    return RECOGNIZE_API ? await apiRecognize(img) : await localRecognize(img);
+  }
+
+  /** 拍照后点「识别卡路里」→ 调统一入口 → 弹窗 */
+  async function analyzePhoto() {
+    var img = document.getElementById('previewImg');
+    if (!img.src || !img.naturalWidth) { showToast('请先拍一张照片'); return; }
+
+    showToast('识别中...');
+    var result = await recognizeFood(img);
+    if (result) {
+      state.pendingScan = { name: result.name, cal: result.cal };
+      var label = result.name + (result.score ? ' (' + Math.round(result.score*100) + '% 置信)' : '');
+      document.getElementById('mFood').textContent = label;
+      document.getElementById('mCal').textContent = result.cal;
       document.getElementById('previewWrap').classList.remove('show');
       openModal();
       showToast('识别完成 ✓');
-      return;
+    } else {
+      showToast('没识别出食物，请对准食物重拍');
     }
-
-    showToast('没识别出食物，请对准食物重拍');
   }
 
   function openModal() { document.getElementById('modal').classList.add('show'); }

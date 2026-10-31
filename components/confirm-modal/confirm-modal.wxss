@@ -5,7 +5,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(17, 24, 39, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,10 +13,10 @@
 }
 
 .modal {
-  width: 560rpx;
+  width: 600rpx;
   background: #FFFFFF;
-  border-radius: 20rpx;
-  padding: 48rpx 40rpx 32rpx;
+  border-radius: 24rpx;
+  padding: 48rpx 40rpx 36rpx;
   box-sizing: border-box;
 }
 
@@ -24,62 +24,78 @@
   font-size: 34rpx;
   font-weight: 600;
   text-align: center;
-  margin-bottom: 36rpx;
-  color: #333;
+  margin-bottom: 24rpx;
+  color: #111827;
 }
 
 .row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #F0F0F0;
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid #F3F5F9;
 }
 
 .label {
-  font-size: 28rpx;
-  color: #888;
+  font-size: 26rpx;
+  color: #6B7280;
 }
 
 .value {
   font-size: 30rpx;
-  color: #333;
+  color: #111827;
   font-weight: 500;
 }
 
 .calorie {
-  font-size: 40rpx;
-  color: #4A90D9;
+  font-size: 44rpx;
+  color: #2563EB;
   font-weight: 700;
 }
 
 .unit {
   font-size: 22rpx;
-  color: #4A90D9;
+  color: #6B7280;
   font-weight: 400;
-  margin-left: 4rpx;
+  margin-left: 8rpx;
 }
 
 .actions {
   display: flex;
   margin-top: 40rpx;
-  gap: 24rpx;
 }
 
 .btn {
   flex: 1;
-  text-align: center;
-  padding: 22rpx 0;
-  border-radius: 12rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
   font-size: 30rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.btn:last-child {
+  margin-left: 24rpx;
 }
 
 .btn-cancel {
-  background: #F5F5F5;
-  color: #666;
+  background: #F3F5F9;
+  color: #4B5563;
+}
+
+.btn-cancel-hover {
+  background: #E9EDF3;
 }
 
 .btn-record {
-  background: #4A90D9;
-  color: #FFF;
+  background: #2563EB;
+  color: #FFFFFF;
+  box-shadow: 0 8rpx 20rpx rgba(37, 99, 235, 0.24);
+}
+
+.btn-record-hover {
+  background: #1D4ED8;
 }

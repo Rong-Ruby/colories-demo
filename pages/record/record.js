@@ -6,10 +6,13 @@ Page({
   data: {
     todayTotal: 0,
     dailyGoal: 1500,
-    remaining: 0,
+    remaining: '',
     todayList: [],
     weekSummary: [],
-    weekAvg: 0
+    weekDays: 0,
+    weekAvg: 0,
+    overGoal: false,
+    cloudMode: true
   },
 
   onShow() {
@@ -17,28 +20,67 @@ Page({
   },
 
   /**
-   * 刷新全部数据
+   * 刷新全部数据（云数据库优先）
    */
-  refresh() {
+  async refresh() {
     const goal = app.globalData.dailyGoal;
-    const todayTotal = storage.getTodayTotal();
-    const todayList = storage.getRecordsByDate();
-    const weekSummary = storage.getWeekSummary();
+    const [todayTotal, todayList, weekSummary] = await Promise.all([
+      storage.getTodayTotal(),
+      storage.getRecordsByDate(),
+      storage.getWeekSummary()
+    ]);
 
-    // 日均 —— 只统计有摄入的天，或者全部 7 天？用户要"只显示数字"，用 7 天总数/7
-    const weekSum = weekSummary.reduce((s, d) => s + d.total, 0);
-    const weekAvg = Math.round(weekSum / 7);
+    // 日均按「有记录的天数」计算，避免空白天数把平均值拉低
+    const weekSum = weekSummary.reduce((sum, d) => sum + d.total, 0);
+    const weekDays = weekSummary.filter((d) => d.total > 0).length;
+    const weekAvg = weekDays ? Math.round(weekSum / weekDays) : 0;
 
-    // 剩余目标
-    const remaining = goal - todayTotal;
+    const diff = goal - todayTotal;
+    let remaining = '';
+    if (diff > 0) {
+      remaining = `距目标还差 ${diff} kcal`;
+    } else if (diff < 0) {
+      remaining = `已超出目标 ${-diff} kcal`;
+    } else {
+      remaining = '已达到今日目标';
+    }
 
     this.setData({
       dailyGoal: goal,
       todayTotal,
       todayList,
       weekSummary,
+      weekDays,
       weekAvg,
-      remaining: remaining > 0 ? `还剩 ${remaining} kcal` : `已超 ${-remaining} kcal`
+      remaining,
+      overGoal: diff < 0,
+      cloudMode: storage.isCloudMode()
+    });
+  },
+
+  /**
+   * 长按删除一条今日记录
+   */
+  onDeleteRecord(e) {
+    const { id, name } = e.currentTarget.dataset;
+    wx.showModal({
+      title: '删除这条记录？',
+      content: `「${name}」将不会计入今日摄入`,
+      confirmText: '删除',
+      confirmColor: '#E64340',
+      success: async (res) => {
+        if (!res.confirm) return;
+        wx.showLoading({ title: '删除中', mask: true });
+        try {
+          await storage.deleteRecord(id);
+          wx.hideLoading();
+          this.refresh();
+          wx.showToast({ title: '已删除', icon: 'none' });
+        } catch (err) {
+          wx.hideLoading();
+          wx.showToast({ title: '删除失败，请重试', icon: 'none' });
+        }
+      }
     });
   },
 
@@ -47,20 +89,20 @@ Page({
    */
   onEditGoal() {
     wx.showModal({
-      title: '设置每日目标 (kcal)',
+      title: '设置每日目标',
       editable: true,
-      placeholderText: String(this.data.dailyGoal),
+      placeholderText: `当前 ${this.data.dailyGoal} kcal`,
       success: (res) => {
         if (!res.confirm) return;
-        const val = Number(res.content);
-        if (!Number.isFinite(val) || val <= 0) {
-          wx.showToast({ title: '请输入有效数字', icon: 'none' });
+        const val = Math.round(Number(res.content));
+        if (!Number.isFinite(val) || val <= 0 || val > 9999) {
+          wx.showToast({ title: '请输入 1-9999 的数字', icon: 'none' });
           return;
         }
-        app.globalData.dailyGoal = Math.round(val);
-        wx.setStorageSync('dailyGoal', Math.round(val));
+        app.globalData.dailyGoal = val;
+        wx.setStorageSync('dailyGoal', val);
         this.refresh();
-        wx.showToast({ title: '已更新 ✓', icon: 'success' });
+        wx.showToast({ title: '目标已更新', icon: 'success' });
       }
     });
   }

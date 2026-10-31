@@ -1,88 +1,127 @@
 /* pages/record/record.wxss */
 .container {
-  padding-bottom: 80rpx;
+  padding-bottom: 64rpx;
 }
 
 /* 顶部摄入卡片 */
 .goal-card {
-  background: #FFFFFF;
-  border-radius: 20rpx;
-  padding: 40rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  padding: 40rpx 32rpx 32rpx;
   margin-bottom: 32rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .goal-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .goal-item {
   flex: 1;
+}
+
+.goal-right {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
 }
 
-.goal-divider {
-  width: 2rpx;
-  height: 60rpx;
-  background: #EEE;
-}
-
-.goal-label {
+.metric-label {
   font-size: 24rpx;
-  color: #999;
-  margin-bottom: 12rpx;
+  color: #9CA3AF;
+}
+
+.metric-line {
+  display: flex;
+  align-items: baseline;
+  margin-top: 12rpx;
+}
+
+.metric-value {
+  font-size: 64rpx;
+  font-weight: 700;
+  color: #2563EB;
+  line-height: 1.1;
+}
+
+.metric-unit {
+  font-size: 22rpx;
+  color: #6B7280;
+  margin-left: 8rpx;
+}
+
+.goal-target {
+  display: flex;
+  align-items: center;
+  margin-top: 16rpx;
 }
 
 .goal-value {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #4A90D9;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #111827;
 }
 
-.goal-value.big {
-  font-size: 52rpx;
-}
-
-.goal-edit {
+/* 三级操作：修改目标 */
+.pill-btn {
+  margin-left: 16rpx;
+  padding: 0 24rpx;
+  height: 52rpx;
   display: flex;
-  align-items: baseline;
-  gap: 8rpx;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #2563EB;
+  border-radius: 999rpx;
+  color: #2563EB;
+  font-size: 22rpx;
+  font-weight: 500;
+  box-sizing: border-box;
 }
 
-.goal-edit-icon {
-  font-size: 26rpx;
-  color: #4A90D9;
+.pill-btn-hover {
+  background: #EAF1FF;
 }
 
-.goal-bottom {
-  margin-top: 20rpx;
-  text-align: center;
+/* 达标提示 */
+.remaining-chip {
+  align-self: flex-start;
+  margin-top: 28rpx;
+  padding: 10rpx 24rpx;
+  background: #EAF1FF;
+  color: #2563EB;
+  font-size: 24rpx;
+  border-radius: 999rpx;
 }
 
-.goal-sub {
-  font-size: 26rpx;
-  color: #888;
+.remaining-chip.over {
+  background: #FDECEC;
+  color: #DC2626;
 }
 
 /* 区块通用 */
 .section {
-  background: #FFFFFF;
-  border-radius: 20rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 24rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx solid #F3F5F9;
 }
 
 .section-title {
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 600;
-  color: #333;
-  margin-bottom: 24rpx;
-  padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #F0F0F0;
+  color: #111827;
+}
+
+.section-tip {
+  font-size: 22rpx;
+  color: #9CA3AF;
 }
 
 /* 今日记录列表 */
@@ -90,12 +129,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid #F8F8F8;
+  padding: 28rpx 0;
+  border-bottom: 2rpx solid #F5F7FA;
 }
 
 .list-item:last-child {
   border-bottom: none;
+  padding-bottom: 8rpx;
+}
+
+.list-item-hover {
+  background: #F6F8FB;
 }
 
 .list-left {
@@ -105,66 +149,84 @@
 
 .food-name {
   font-size: 28rpx;
-  color: #333;
+  color: #111827;
 }
 
 .food-time {
   font-size: 22rpx;
-  color: #BBB;
+  color: #9CA3AF;
   margin-top: 6rpx;
 }
 
 .food-calorie {
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 600;
-  color: #4A90D9;
+  color: #2563EB;
+}
+
+.food-unit {
+  font-size: 20rpx;
+  font-weight: 400;
+  color: #6B7280;
 }
 
 .empty {
   text-align: center;
-  color: #BBB;
+  color: #9CA3AF;
   font-size: 26rpx;
-  padding: 32rpx 0;
+  padding: 40rpx 0;
 }
 
-/* 本周总结 */
+/* 近 7 天汇总 */
 .week-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
 }
 
 .week-item {
   width: calc(50% - 8rpx);
-  background: #F5F7FA;
-  border-radius: 12rpx;
-  padding: 20rpx 24rpx;
+  background: #F6F8FB;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   box-sizing: border-box;
 }
 
+.week-item:nth-child(odd) {
+  margin-right: 16rpx;
+}
+
 .week-day {
-  font-size: 26rpx;
-  color: #666;
+  font-size: 24rpx;
+  color: #6B7280;
 }
 
 .week-total {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #4A90D9;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2563EB;
 }
 
 .week-unit {
   font-size: 20rpx;
-  color: #4A90D9;
-  margin-left: 4rpx;
+  font-weight: 400;
+  color: #6B7280;
 }
 
 .week-avg {
-  margin-top: 24rpx;
+  margin-top: 16rpx;
   text-align: center;
-  font-size: 26rpx;
-  color: #888;
+  font-size: 24rpx;
+  color: #6B7280;
+}
+
+/* 数据来源提示 */
+.data-source {
+  margin-top: 16rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #9CA3AF;
 }
